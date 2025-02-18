@@ -16,7 +16,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 	set(CMAKE_CXX_STANDARD 11)
 
 # Compiler Flags
-	set(OPT_FLAG -O2 -g)
+	set(OPT_FLAG -O0 -g)
 
 # Source Files
 	file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.cpp")
@@ -26,8 +26,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 # Compile Options
 
 	target_compile_options(${PROJECT_NAME} PRIVATE
-		${OPT_FLAG}
-		-Wall -Wextra -Wpedantic -Wshadow -Wfloat-conversion -Wconversion -Wformat=2
+		${OPT_FLAG} -fsignaling-nans
+		-Wall -Wextra -Wshadow -Wfloat-conversion -Wconversion -Wformat=2
 	)
 
 	target_link_libraries(${PROJECT_NAME} PRIVATE "quadmath")

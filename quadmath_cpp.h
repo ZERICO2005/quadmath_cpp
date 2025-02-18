@@ -1,5 +1,5 @@
 /*
-**	Author: zerico2005 (2024)
+**	Author: zerico2005 (2024 - 2025)
 **	Project: quadmath_cpp
 **	License: MIT License
 **	A copy of the MIT License should be included with
@@ -13,8 +13,12 @@
 // <quadmath.h> overloads
 //------------------------------------------------------------------------------
 
-#include <cmath>
 #include <quadmath.h>
+
+#if __cplusplus >= 201103L
+	#include <cmath>
+	#include <cfenv>
+#endif
 
 /* Classification */
 
@@ -24,11 +28,84 @@ inline bool isinf(__float128 x) { return (isinfq(x) != 0); }
 inline bool isnan(__float128 x) { return (isnanq(x) != 0); }
 inline bool issignaling(__float128 x) { return (issignalingq(x) != 0); }
 
+inline bool isunordered(__float128 x, __float128 y) {
+	return ((isnanq(x) != 0) || (isnanq(y) != 0));
+}
+inline bool isnormal(__float128 x) {
+	return ((finiteq(x) != 0) && (fabsq(x) >= FLT128_MIN));
+}
+inline bool issubnormal(__float128 x) {
+	return ((finiteq(x) != 0) && (fabsq(x) < FLT128_MIN) && (x != static_cast<__float128>(0.0)));
+}
+
+#if __cplusplus >= 201103L
+
+inline int fpclassify(__float128 x) {
+	return
+		isinfq(x)                          ? FP_INFINITE :
+		isnanq(x)                          ? FP_NAN      :
+		x == static_cast<__float128>(0.0)  ? FP_ZERO     :
+		isnormal(x)                        ? FP_NORMAL   :
+		FP_SUBNORMAL;
+}
+
+#endif /* __cplusplus >= 201103L */
+
+/* Quiet Compairison */
+
+inline bool islessgreater(__float128 x, __float128 y) {
+	return ((x != y) && (isnanq(x) == 0) && (isnanq(y) == 0));
+}
+
+#if __cplusplus >= 201103L
+
+inline bool isless(__float128 x, __float128 y) {
+	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
+	bool result = (x < y);
+	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
+	return result;
+}
+inline bool islessequal(__float128 x, __float128 y) {
+	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
+	bool result = (x <= y);
+	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
+	return result;
+}
+inline bool isgreater(__float128 x, __float128 y) {
+	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
+	bool result = (x > y);
+	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
+	return result;
+}
+inline bool isgreaterequal(__float128 x, __float128 y) {
+	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
+	bool result = (x >= y);
+	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
+	return result;
+}
+
+#endif /* __cplusplus >= 201103L */
+
+
+/* signaling comparison */
+
+#if __cplusplus >= 201103L
+
+inline bool iseqsig(__float128 x, __float128 y) {
+	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
+		std::feraiseexcept(FE_INVALID);
+	}
+	return (x == y);
+}
+
+#endif /* __cplusplus >= 201103L */
+
 /* Manipulation */
 
 inline __float128 fabs(__float128 x) { return fabsq(x); }
 inline __float128 copysign(__float128 x, __float128 y) { return copysignq(x, y); }
 inline __float128 nextafter(__float128 x, __float128 y) { return nextafterq(x, y); }
+inline __float128 nexttoward(__float128 x, long double y) { return nextafterq(x, static_cast<__float128>(y)); }
 
 /* Float Exponents */
 
@@ -51,12 +128,12 @@ inline __float128 hypot(__float128 x, __float128 y) { return hypotq(x, y); }
 /* Remainder and Modulus */
 
 inline __float128 fmod(__float128 x, __float128  y) { return fmodq(x, y); }
-inline __float128 modf(__float128 x, __float128* int_part) { return modfq(x, int_part); }
 inline __float128 remainder(__float128 x, __float128 y) { return remainderq(x, y); }
 inline __float128 remquo(__float128 x, __float128 y, int* quo) { return remquoq(x, y, quo); }
 
 /* Rounding */
 
+inline __float128 modf(__float128 x, __float128* integral_part) { return modfq(x, integral_part); }
 inline __float128 trunc(__float128 x) { return truncq(x); }
 inline __float128 floor(__float128 x) { return floorq(x); }
 inline __float128 ceil (__float128 x) { return ceilq (x); }
@@ -103,67 +180,5 @@ inline __float128 erf (__float128 x) { return erfq (x); }
 inline __float128 erfc(__float128 x) { return erfcq(x); }
 inline __float128 lgamma(__float128 x) { return lgammaq(x); }
 inline __float128 tgamma(__float128 x) { return tgammaq(x); }
-
-//------------------------------------------------------------------------------
-// C++11 <cmath> overloads
-//------------------------------------------------------------------------------
-
-/* Manipulation */
-
-inline __float128 nexttoward(__float128 x, long double y) {
-	return nextafterq(x, static_cast<__float128>(y));
-}
-
-/* Compairison */
-
-inline bool isgreater(__float128 x, __float128 y) {
-	return (x > y);
-}
-inline bool isgreaterequal(__float128 x, __float128 y) {
-	return (x >= y);
-}
-inline bool isless(__float128 x, __float128 y) {
-	return (x < y);
-}
-inline bool islessequal(__float128 x, __float128 y) {
-	return (x <= y);
-}
-inline bool islessgreater(__float128 x, __float128 y) {
-	return (x < y) || (x > y);
-}
-
-/* Classification */
-
-inline bool isunordered(__float128 x, __float128 y) {
-	return (isnanq(x) != 0) || (isnanq(y) != 0);
-}
-
-inline bool isnormal(__float128 x) {
-	return (finiteq(x) != 0 && fabsq(x) >= FLT128_MIN);
-}
-
-inline int fpclassify(__float128 x) {
-	return
-		isinfq(x)                          ? FP_INFINITE :
-		isnanq(x)                          ? FP_NAN      :
-		x == static_cast<__float128>(0.0)  ? FP_ZERO     :
-		isnormal(x)                        ? FP_NORMAL   :
-		FP_SUBNORMAL;
-}
-
-//------------------------------------------------------------------------------
-// Additional overloads
-//------------------------------------------------------------------------------
-
-/** @brief calls `exp(x * M_LN10q)`  */
-inline __float128 exp10(__float128 x) {
-	return expq(x * M_LN10q);
-}
-
-/** @brief calls `*p_sinh = sinhq(x); *p_cosh = coshq(x);`  */
-inline void sinhcosh(__float128 x, __float128* p_sinh, __float128* p_cosh) {
-	*p_sinh = sinhq(x);
-	*p_cosh = coshq(x);
-}
 
 #endif /* QUADMATH_CPP_H */
