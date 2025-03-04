@@ -14,6 +14,7 @@
 //------------------------------------------------------------------------------
 
 #include <quadmath.h>
+#include <complex.h>
 
 #if __cplusplus >= 201103L
 	/* for fpclassify return values */
@@ -99,6 +100,76 @@ inline __float128 fabs(__float128 x) { return fabsq(x); }
 inline __float128 copysign(__float128 x, __float128 y) { return copysignq(x, y); }
 inline __float128 nextafter(__float128 x, __float128 y) { return nextafterq(x, y); }
 inline __float128 nexttoward(__float128 x, long double y) { return nextafterq(x, static_cast<__float128>(y)); }
+
+/** based on C23 nextup */
+inline __float128 nextupq(__float128 x) {
+	/* handle all signaling edge cases */
+	if (isnanq(x) != 0) {
+		if (issignalingq(x) != 0) {
+			/* raise exceptions for signalling NaN */
+			return nextafterq(x, x);
+		}
+		return x;
+	}
+	if (isinfq(x) != 0) {
+		if (signbitq(x) == 0) {
+			/* x is positive infinity */
+			return x;
+		}
+		/* x is negative infinity */
+		return -HUGE_VALQ;
+	}
+	if (x == -FLT128_DENORM_MIN) {
+		/* underflows to negative zero */
+		return static_cast<__float128>(-0.0);
+	}
+	if (x == static_cast<__float128>(0.0)) {
+		/* x is signed zero */
+		return FLT128_DENORM_MIN;
+	}
+	if (x == FLT128_MAX) {
+		/* x overflows to positive infinity */
+		return HUGE_VALQ;
+	}
+	return nextafterq(x, HUGE_VALQ);
+}
+
+inline __float128 nextup(__float128 x) { return nextupq(x); }
+
+/** based on C23 nextdown */
+inline __float128 nextdownq(__float128 x) {
+	/* handle all signaling edge cases */
+	if (isnanq(x) != 0) {
+		if (issignalingq(x) != 0) {
+			/* raise exceptions for signalling NaN */
+			return nextafterq(x, x);
+		}
+		return x;
+	}
+	if (isinfq(x) != 0) {
+		if (signbitq(x) != 0) {
+			/* x is negative infinity */
+			return x;
+		}
+		/* x is positive infinity */
+		return HUGE_VALQ;
+	}
+	if (x == FLT128_DENORM_MIN) {
+		/* underflows to positive zero */
+		return static_cast<__float128>(0.0);
+	}
+	if (x == static_cast<__float128>(0.0)) {
+		/* x is signed zero */
+		return -FLT128_DENORM_MIN;
+	}
+	if (x == -FLT128_MAX) {
+		/* x overflows to negative infinity */
+		return -HUGE_VALQ;
+	}
+	return nextafterq(x, -HUGE_VALQ);
+}
+
+inline __float128 nextdown(__float128 x) { return nextdownq(x); }
 
 /* Float Exponents */
 
