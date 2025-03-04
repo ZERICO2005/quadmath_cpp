@@ -16,8 +16,8 @@
 #include <quadmath.h>
 
 #if __cplusplus >= 201103L
+	/* for fpclassify return values */
 	#include <cmath>
-	#include <cfenv>
 #endif
 
 /* Classification */
@@ -31,9 +31,11 @@ inline bool issignaling(__float128 x) { return (issignalingq(x) != 0); }
 inline bool isunordered(__float128 x, __float128 y) {
 	return ((isnanq(x) != 0) || (isnanq(y) != 0));
 }
+
 inline bool isnormal(__float128 x) {
 	return ((finiteq(x) != 0) && (fabsq(x) >= FLT128_MIN));
 }
+
 inline bool issubnormal(__float128 x) {
 	return ((finiteq(x) != 0) && (fabsq(x) < FLT128_MIN) && (x != static_cast<__float128>(0.0)));
 }
@@ -57,48 +59,39 @@ inline bool islessgreater(__float128 x, __float128 y) {
 	return ((x != y) && (isnanq(x) == 0) && (isnanq(y) == 0));
 }
 
-#if __cplusplus >= 201103L
-
 inline bool isless(__float128 x, __float128 y) {
-	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
-	bool result = (x < y);
-	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
-	return result;
+	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
+		return false;
+	}
+	return (x < y);
 }
+
 inline bool islessequal(__float128 x, __float128 y) {
-	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
-	bool result = (x <= y);
-	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
-	return result;
+	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
+		return false;
+	}
+	return (x <= y);
 }
+
 inline bool isgreater(__float128 x, __float128 y) {
-	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
-	bool result = (x > y);
-	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
-	return result;
+	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
+		return false;
+	}
+	return (x > y);
 }
+
 inline bool isgreaterequal(__float128 x, __float128 y) {
-	bool ignore_fe_expection = !std::fetestexcept(FE_INVALID);
-	bool result = (x >= y);
-	if (ignore_fe_expection) { std::feclearexcept(FE_INVALID); }
-	return result;
+	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
+		return false;
+	}
+	return (x >= y);
 }
-
-#endif /* __cplusplus >= 201103L */
-
 
 /* signaling comparison */
 
-#if __cplusplus >= 201103L
-
 inline bool iseqsig(__float128 x, __float128 y) {
-	if ((isnanq(x) != 0) || (isnanq(y) != 0)) {
-		std::feraiseexcept(FE_INVALID);
-	}
-	return (x == y);
+	return ((x >= y) && (x <= y));
 }
-
-#endif /* __cplusplus >= 201103L */
 
 /* Manipulation */
 
@@ -110,10 +103,10 @@ inline __float128 nexttoward(__float128 x, long double y) { return nextafterq(x,
 /* Float Exponents */
 
 inline int ilogb(__float128 x) { return ilogbq(x); }
-inline __float128 frexp  (__float128 x, int* exp) { return frexpq  (x, exp); }
-inline __float128 ldexp  (__float128 x, int  exp) { return ldexpq  (x, exp); }
-inline __float128 scalbn (__float128 x, int  exp) { return scalbnq (x, exp); }
-inline __float128 scalbln(__float128 x, long exp) { return scalblnq(x, exp); }
+inline __float128 frexp  (__float128 x, int* expon) { return frexpq  (x, expon); }
+inline __float128 ldexp  (__float128 x, int  expon) { return ldexpq  (x, expon); }
+inline __float128 scalbn (__float128 x, int  expon) { return scalbnq (x, expon); }
+inline __float128 scalbln(__float128 x, long expon) { return scalblnq(x, expon); }
 
 /* Arithmetic */
 
