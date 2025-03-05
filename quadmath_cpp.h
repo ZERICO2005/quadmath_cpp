@@ -1,9 +1,9 @@
 /*
-**	Author: zerico2005 (2024 - 2025)
-**	Project: quadmath_cpp
-**	License: MIT License
-**	A copy of the MIT License should be included with
-**	this project. If not, see https://opensource.org/license/MIT
+** Author: zerico2005 (2024 - 2025)
+** Project: quadmath_cpp
+** License: MIT License
+** A copy of the MIT License should be included with
+** this project. If not, see https://opensource.org/license/MIT
 */
 
 #ifndef QUADMATH_CPP_H
@@ -13,11 +13,20 @@
 // <quadmath.h> overloads
 //------------------------------------------------------------------------------
 
+#ifndef QUADMATH_CPP_NAMESPACE_STD
+/* disabled by default */
+#define QUADMATH_CPP_NAMESPACE_STD 0
+#endif
+
 #include <quadmath.h>
 
 #if __cplusplus >= 201103L
 	/* for fpclassify return values */
 	#include <cmath>
+#endif
+
+#if QUADMATH_CPP_NAMESPACE_STD
+namespace std {
 #endif
 
 /* Classification */
@@ -173,5 +182,9 @@ inline __float128 erf (__float128 x) { return erfq (x); }
 inline __float128 erfc(__float128 x) { return erfcq(x); }
 inline __float128 lgamma(__float128 x) { return lgammaq(x); }
 inline __float128 tgamma(__float128 x) { return tgammaq(x); }
+
+#if QUADMATH_CPP_NAMESPACE_STD
+}
+#endif
 
 #endif /* QUADMATH_CPP_H */

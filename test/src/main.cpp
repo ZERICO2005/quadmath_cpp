@@ -1,9 +1,9 @@
 /*
-**	Author: zerico2005 (2024 - 2025)
-**	Project: quadmath_cpp
-**	License: MIT License
-**	A copy of the MIT License should be included with
-**	this project. If not, see https://opensource.org/license/MIT
+** Author: zerico2005 (2024 - 2025)
+** Project: quadmath_cpp
+** License: MIT License
+** A copy of the MIT License should be included with
+** this project. If not, see https://opensource.org/license/MIT
 */
 
 #include <cassert>
@@ -17,6 +17,7 @@
 
 #include <quadmath.h>
 
+#define QUADMATH_CPP_NAMESPACE_STD 0
 #include "../../quadmath_cpp.h"
 
 void basic_test() {
